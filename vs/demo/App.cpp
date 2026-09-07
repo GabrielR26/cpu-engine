@@ -307,7 +307,7 @@ void Ship::Update()
 	float dt = cpuTime.delta;
 
 	// Turn ship
-	m_pEntity->transform.AddYPR(dt, dt, dt);
+	m_pEntity->transform.AddYPR(dt, 0, 0);
 
 	// Move ship
 	m_pEntity->transform.pos.z += dt * 1.0f;
