@@ -12,7 +12,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow)
 	//CPU_RUN(512, 256, true, false);
 
 	// RETRO WINDOWED
-	CPU_RUN(512, 256);
+	CPU_RUN(512*2, 256*2);
 
 	// MODERN
 	//CPU_RUN(1024, 576);

@@ -78,7 +78,7 @@ void App::OnStart()
 	m_materialEarth.pTexture = &m_textureEarth;
 
 	// 3D
-	m_missileSpeed = 10.0f;
+	m_missileSpeed = 5.0f;
 	m_pEarth = cpuEngine.CreateEntity();
 	m_pEarth->pMesh = &m_meshSphere;
 	m_pEarth->pMaterial = &m_materialEarth;
@@ -96,17 +96,18 @@ void App::OnStart()
 	m_pShip->GetFSM()->ToState(CPU_ID(StateShipIdle));
 
 	// Particle
-	cpuEngine.GetParticleData()->Create(2000000);
-	cpuEngine.GetParticlePhysics()->gy = -0.5f;
+	cpuEngine.GetParticleData()->Create(4000000);
+	cpuEngine.GetParticlePhysics()->gy = 0.0f;
 	m_pEmitter = cpuEngine.CreateParticleEmitter();
 	m_pEmitter->rate = 1.0f;
 	m_pEmitter->colorMin = cpu::ToColor(255, 0, 0);
-	m_pEmitter->colorMax = cpu::ToColor(255, 128, 0);
+	m_pEmitter->colorMax = cpu::ToColor(255, 255, 0);
 	m_pEmitter2 = cpuEngine.CreateParticleEmitter();
 	m_pEmitter2->rate = 0.25f;
-	m_pEmitter2->colorMin = cpu::ToColor(0, 0, 255);
-	m_pEmitter2->colorMax = cpu::ToColor(0, 128, 255);
+	m_pEmitter2->colorMin = cpu::ToColor(255, 255, 255);
+	m_pEmitter2->colorMax = cpu::ToColor(0, 0, 0);
 	m_pEmitter2->pos.x = -2.0f;
+	m_pEmitter2->spread = 2.0f;
 
 	// Test
 	//m_pEmitter->blend = CPU_PARTICLE_OPAQUE;
@@ -128,7 +129,8 @@ void App::OnStart()
 	//pE->pMaterial->pTexture = &m_textureEarth;
 
 	// Camera
-	cpuEngine.GetCamera()->transform.pos.z = -5.0f;
+	cpuEngine.GetCamera()->transform.pos.z = -10.0f;
+	cpuEngine.GetCamera()->transform.pos.y = 2.0f;
 }
 
 void App::OnUpdate()
@@ -153,7 +155,7 @@ void App::OnUpdate()
 	m_pEmitter->dir.z = -m_pEmitter->dir.z; 
 
 	// Turn camera
-	cpuEngine.GetCamera()->transform.AddYPR(0.0f, 0.0f, dt*0.1f);
+	//cpuEngine.GetCamera()->transform.AddYPR(0.0f, 0.0f, dt*0.1f);
 
 	// Move ship
 	if ( cpuInput.IsUp() )
@@ -164,6 +166,13 @@ void App::OnUpdate()
 		cpuEngine.GetCamera()->transform.AddYPR(-dt*XM_PI);
 	if ( cpuInput.IsRight() )
 		cpuEngine.GetCamera()->transform.AddYPR(dt*XM_PI);
+
+	// Move Emitter2
+	XMFLOAT3 dirShip = m_pShip->GetEntity()->transform.dir;
+	dirShip.x = m_pShip->GetEntity()->transform.pos.x + dirShip.x * 2.0f;
+	dirShip.y = m_pShip->GetEntity()->transform.pos.y + dirShip.y * 2.0f;
+	dirShip.z = m_pShip->GetEntity()->transform.pos.z + dirShip.z * 2.0f;
+	m_pEmitter2->pos = dirShip;	
 
 	// Move missiles
 	for ( auto it=m_missiles.begin() ; it!=m_missiles.end() ; ++it )
