@@ -80,14 +80,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Actor.h" />
     <ClInclude Include="App.h" />
+    <ClInclude Include="Catcher.h" />
+    <ClInclude Include="Decor.h" />
+    <ClInclude Include="Drop.h" />
+    <ClInclude Include="DropFactory.h" />
+    <ClInclude Include="DropManager.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="template.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Actor.cpp" />
     <ClCompile Include="App.cpp" />
+    <ClCompile Include="Catcher.cpp" />
+    <ClCompile Include="Decor.cpp" />
+    <ClCompile Include="Drop.cpp" />
+    <ClCompile Include="DropFactory.cpp" />
+    <ClCompile Include="DropManager.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
