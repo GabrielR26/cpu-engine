@@ -2,32 +2,42 @@
 #include "Actor.h"
 
 class Catcher :
-    public Actor
+	public Actor
 {
 protected:
-    float m_height = 0.5f;
-    float m_radius = 0.5f;
-    float m_springArm = 3.0f;
-    float m_rad = 0.0f;
-    float m_speed = 2.0f;
-    float m_railRadius;
+	float m_height;
+	float m_radius;
+	float m_springArm;
+	float m_angle;
+	float m_angleLag;
+	float m_maxAngleLag;
+	float m_maxLag;
+	float m_speed;
+	float m_railRadius;
+
+	float m_lagTimerStop;
+	float m_lagTimerMove;
+	float m_lagTimeStop;
+	float m_lagTimeMove;
+	float m_signMemory;
 
 public:
-    Catcher(const float& _railRadius);
-    virtual ~Catcher() = default;
-    void Init();
+	Catcher(const float& _railRadius);
+	virtual ~Catcher() = default;
+	void Init();
 
-    float GetHeight() { return m_height; }
-    float GetRadius() { return m_radius; }
-    float GetSpringArm() { return m_springArm; }
-    float GetRad() { return m_rad; }
+	const float GetHeight() { return m_height; }
+	const float GetRadius() { return m_radius; }
+	const float GetSpringArm() { return m_springArm; }
+	const float GetAngle() { return m_angle; }
+	const float GetAngleLag() { return m_angleLag; }
 
-    void UpdateRailPose(const float& _dt);
+	void UpdateRailPose(const float& _dt, const float& _sign);
 
-    // Hérité via Actor
-    void Update(const float& _dt) override;
+	// Hérité via Actor
+	void Update(const float& _dt) override;
 
 protected:
-    void UpdatePosition();
+	void UpdatePosition();
 };
 

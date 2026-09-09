@@ -26,9 +26,9 @@ private:
 	cpu_mesh m_meshRail;
 	cpu_mesh m_meshCatcher;
 
-	cpu_particle_emitter* m_dropSpawn;
-	cpu_particle_emitter* m_dropExplosion;
-	cpu_particle_emitter* m_dropCatch;
+	cpu_particle_emitter* m_emitterDropSpawn;
+	cpu_particle_emitter* m_emitterDropExplosion;
+	cpu_particle_emitter* m_emitterDropCatch;
 
 	Catcher* m_catcher;
 	int m_score;

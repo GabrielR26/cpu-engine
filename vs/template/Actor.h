@@ -1,6 +1,6 @@
 #pragma once
 
-class cpu_entity;
+struct cpu_entity;
 
 class Actor : public cpu_object
 {

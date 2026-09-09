@@ -6,31 +6,21 @@
 
 DropFactory::DropFactory(Catcher* _catcher, const float& _railRadius)
 {
+    m_dropHeight = 4.0f;
+    m_dropRadius = 0.25f;
+    m_dropSpeed = 1.5f;
+    m_lastDropRad = 0.f;
+
     m_meshDrop.CreateSphere(m_dropRadius, 5, 12, CPU_ORANGE, CPU_RED);
     m_railRadius = _railRadius;
     m_catcher = _catcher;
 }
 
-DropFactory::~DropFactory()
-{
-}
-
 Drop* DropFactory::SpawnDrop()
 {
-    Drop* _newDrop = new Drop(m_catcher);
+    Drop* _newDrop = new Drop(m_catcher, m_dropHeight, m_dropSpeed, m_dropRadius, m_railRadius);
+    m_lastDropRad = _newDrop->Init(m_lastDropRad);
     _newDrop->SetMesh(&m_meshDrop);
-    XMFLOAT3 _dropPosition = RandDropPosition();
-    _newDrop->SetPosition(_dropPosition);
 
     return _newDrop;
-}
-
-XMFLOAT3 DropFactory::RandDropPosition()
-{
-    float _catcherRad = m_catcher->GetRad();
-    int _randDeg = rand() % (150 - 45);
-    int _randSign = rand() % 2 == 0 ? -1 : 1;
-    float _rad = _catcherRad + XMConvertToRadians(((_randDeg + 45) * _randSign));
-    XMFLOAT3 _dropPosition(XMScalarSin(_rad) * m_railRadius, m_dropHeight, XMScalarCos(_rad) * m_railRadius);
-    return _dropPosition;
 }

@@ -23,7 +23,18 @@ App::App()
 	m_startOffset = 20.f;
 	m_railRadius = 4.f;
 	m_dropTimer = 0.f;
-	m_dropTime = 0.5f;
+	m_dropTime = 1.5f;
+	m_overTime = 0.f;
+
+	m_emitterDropSpawn = nullptr;
+	m_emitterDropExplosion = nullptr;
+	m_emitterDropCatch = nullptr;
+	m_catcher = nullptr;
+	m_circle1 = nullptr;
+	m_circle2 = nullptr;
+	m_rail = nullptr;
+	m_dropManager = nullptr;
+	m_dropFactory = nullptr;
 }
 
 App::~App()
@@ -45,9 +56,10 @@ void App::OnStart()
 	m_meshCircle1.CreateCircle(m_railRadius - 0.5f, 36, CPU_GRAY);
 	m_meshCircle2.CreateCircle(m_railRadius + 1.0f, 36, CPU_GRAY);
 	m_meshRail.CreateCircle(m_railRadius + 0.5f, 36, CPU_WHITE);
-	for (size_t i = 0; i < 36 * 3; i += 3)
+	for (int i = 0; i < 36 * 3; i += 3)
 	{
-		XMFLOAT3 _color(i % 2, i % 2, i % 2);
+		int _mod = i % 2;
+		XMFLOAT3 _color((float)_mod, (float)_mod, (float)_mod);
 		m_meshRail.vertices[i].color = _color;
 		m_meshRail.vertices[i + 1].color = _color;
 		m_meshRail.vertices[i + 2].color = _color;
@@ -73,26 +85,26 @@ void App::OnStart()
 	m_dropFactory = new DropFactory(m_catcher, m_railRadius);
 
 	// Emitter
-	cpuEngine.GetParticleData()->Create(100000);
+	cpuEngine.GetParticleData()->Create(1000000);
 	cpuEngine.GetParticlePhysics()->gy = 0.0f;
-	m_dropSpawn = cpuEngine.CreateParticleEmitter();
-	m_dropSpawn->rate = 1.0f;
-	m_dropSpawn->spread = 2.0f;
-	m_dropSpawn->durationMax = 1.0f;
-	m_dropSpawn->colorMin = cpu::ToColor(0, 0, 255);
-	m_dropSpawn->colorMax = cpu::ToColor(0, 125, 255);
-	m_dropExplosion = cpuEngine.CreateParticleEmitter();
-	m_dropExplosion->rate = 1.0f;
-	m_dropExplosion->spread = 2.0f;
-	m_dropExplosion->durationMax = 1.0f;
-	m_dropExplosion->colorMin = cpu::ToColor(255, 0, 0);
-	m_dropExplosion->colorMax = cpu::ToColor(255, 125, 0);
-	m_dropCatch = cpuEngine.CreateParticleEmitter();
-	m_dropCatch->rate = 1.0f;
-	m_dropCatch->spread = 2.0f;
-	m_dropCatch->durationMax = 1.0f;
-	m_dropCatch->colorMin = cpu::ToColor(0, 255, 0);
-	m_dropCatch->colorMax = cpu::ToColor(125, 255, 125);
+	m_emitterDropExplosion = cpuEngine.CreateParticleEmitter();
+	m_emitterDropExplosion->rate = 0.1f;
+	m_emitterDropExplosion->spread = 1.0f;
+	m_emitterDropExplosion->durationMax = 1.0f;
+	m_emitterDropExplosion->colorMin = cpu::ToColor(255, 125, 125);
+	m_emitterDropExplosion->colorMax = cpu::ToColor(255, 125, 0);
+	m_emitterDropSpawn = cpuEngine.CreateParticleEmitter();
+	m_emitterDropSpawn->rate = 0.1f;
+	m_emitterDropSpawn->spread = 1.0f;
+	m_emitterDropSpawn->durationMax = 1.0f;
+	m_emitterDropSpawn->colorMin = cpu::ToColor(0, 0, 255);
+	m_emitterDropSpawn->colorMax = cpu::ToColor(0, 125, 255);
+	m_emitterDropCatch = cpuEngine.CreateParticleEmitter();
+	m_emitterDropCatch->rate = 0.1f;
+	m_emitterDropCatch->spread = 1.0f;
+	m_emitterDropCatch->durationMax = 1.0f;
+	m_emitterDropCatch->colorMin = cpu::ToColor(0, 255, 0);
+	m_emitterDropCatch->colorMax = cpu::ToColor(125, 255, 125);
 }
 
 void App::OnUpdate()
@@ -210,15 +222,18 @@ void App::StartUpdate()
 	cpuEngine.GetCamera()->transform.LookAt(0, 0, 0);
 
 	/// Emitter
-	m_dropExplosion->pos = RandXYPos(10);
-	m_dropCatch->pos = RandXYPos(10);
-	m_dropSpawn->pos = RandXYPos(10);
+	m_emitterDropExplosion->pos = RandXYPos(10);
+	m_emitterDropCatch->pos = RandXYPos(10);
+	m_emitterDropSpawn->pos = RandXYPos(10);
 
 	if (m_stateTimer >= 3.f)
 	{
-		m_dropExplosion->rate = 0.0f;
-		m_dropCatch->rate = 0.0f;
-		m_dropSpawn->rate = 0.0f;
+		m_emitterDropExplosion->rate = 0.0f;
+		m_emitterDropCatch->rate = 0.0f;
+		m_emitterDropSpawn->rate = 0.0f;
+
+		m_emitterDropCatch->spread = 0.5f;
+
 		ToState(GameState::Engage);
 	}
 }
@@ -232,21 +247,22 @@ void App::EngageUpdate()
 void App::GameUpdate()
 {
 	float _dt = cpuTime.delta;
+	cpu::Clamp(m_dropTime, 1.f, m_dropTime -= _dt * _dt);
 
 	// Disable rate for small explosion
-	if (m_dropExplosion->rate > 0)
-		m_dropExplosion->rate = 0.0f;
-	if (m_dropCatch->rate > 0)
-		m_dropCatch->rate = 0.0f;
-	if (m_dropSpawn->rate > 0)
-		m_dropSpawn->rate = 0.0f;
+	if (m_emitterDropExplosion->rate > 0)
+		m_emitterDropExplosion->rate = 0.0f;
+	if (m_emitterDropCatch->rate > 0)
+		m_emitterDropCatch->rate = 0.0f;
+	if (m_emitterDropSpawn->rate > 0)
+		m_emitterDropSpawn->rate = 0.0f;
 
 	if (m_dropTimer >= m_dropTime)
 	{
 		Drop* _newDrop = m_dropFactory->SpawnDrop();
 		m_dropManager->Add(_newDrop);
-		m_dropSpawn->pos = _newDrop->GetTransform()->pos;
-		m_dropSpawn->rate = 1.f;
+		m_emitterDropSpawn->pos = _newDrop->GetTransform()->pos;
+		m_emitterDropSpawn->rate = 0.5f;
 		m_dropTimer = 0.f;
 	}
 	else
@@ -257,18 +273,15 @@ void App::GameUpdate()
 
 	//// Drops
 	for (size_t i = 0; i < m_dropManager->count; i++)
-	{
-		Drop* _drop = m_dropManager->list[i];
-		_drop->Update(_dt);
-	}
+		m_dropManager->list[i]->Update(_dt);
 	m_dropManager->Purge();
 	//OutputDebugStringA(std::to_string(m_dropManager->count).c_str());
 }
 
 void App::OverUpdate()
 {
-	m_dropExplosion->rate = 0.0f;
-	m_dropCatch->rate = 0.0f;
+	m_emitterDropExplosion->rate = 0.0f;
+	m_emitterDropCatch->rate = 0.0f;
 }
 
 void App::ToState(GameState _state)
@@ -279,8 +292,12 @@ void App::ToState(GameState _state)
 
 void App::UpdateCameraPosition()
 {
+	//cpuEngine.GetCamera()->transform.SetPosition(m_catcher->GetTransform()->pos.x * _catcherSpringArm, _catcherSpringArm, m_catcher->GetTransform()->pos.z * _catcherSpringArm);
+
 	float _catcherSpringArm = m_catcher->GetSpringArm();
-	cpuEngine.GetCamera()->transform.SetPosition(m_catcher->GetTransform()->pos.x * _catcherSpringArm, _catcherSpringArm, m_catcher->GetTransform()->pos.z * _catcherSpringArm);
+	float _catcherAngle = m_catcher->GetAngleLag();
+	XMFLOAT2 _catcherTrigo = GetPositionFromTrigo(_catcherAngle, m_railRadius);
+	cpuEngine.GetCamera()->transform.SetPosition(_catcherTrigo.x * _catcherSpringArm, _catcherSpringArm, _catcherTrigo.y * _catcherSpringArm);
 	cpuEngine.GetCamera()->transform.LookAt(0, 0, 0);
 }
 
@@ -288,14 +305,14 @@ void App::DropExplosion(const XMFLOAT3& _pos, const bool _isCatch)
 {
 	if (_isCatch)
 	{
-		m_dropCatch->pos = _pos;
-		m_dropCatch->rate = 1.0f;
+		m_emitterDropCatch->pos = _pos;
+		m_emitterDropCatch->rate = 0.5f;
 		m_score++;
 	}
 	else
 	{
-		m_dropExplosion->pos = _pos;
-		m_dropExplosion->rate = 1.0f;
+		m_emitterDropExplosion->pos = _pos;
+		m_emitterDropExplosion->rate = 0.5f;
 		m_life--;
 		if (m_life == 0)
 		{
@@ -319,7 +336,7 @@ XMFLOAT3 App::RandXYPos(const int& _max)
 	int _y1 = rand() % _max;
 	int _y1Sign = rand() % 2 == 0 ? -1 : 1;
 
-	return XMFLOAT3(_x1 * _x1Sign, 0.f, _y1 * _y1Sign);
+	return XMFLOAT3((float)_x1 * (float)_x1Sign, 0.f, (float)_y1 * (float)_y1Sign);
 }
 
 void App::MyPixelShader(cpu_ps_io& io)
