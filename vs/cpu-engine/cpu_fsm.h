@@ -86,7 +86,7 @@ template <typename T>
 template <typename S>
 void cpu_fsm<T>::SetGlobal()
 {
-	if ( globalState.self )
+	if (globalState.self)
 		return;
 
 	static S state;
@@ -108,7 +108,7 @@ void cpu_fsm<T>::Add()
 	handle.exit = &Exit<S>;
 
 	int id = (int)states.size();
-	if ( CPU_ID(S)==-1 )
+	if (CPU_ID(S) == -1)
 		CPU_ID(S) = id;
 
 	states.push_back(handle);
@@ -120,37 +120,37 @@ void cpu_fsm<T>::Update()
 	float dt = cpuTime.delta;
 	globalTotalTime += dt;
 	totalTime += dt;
-	
-	if ( pending!=state )
+
+	if (pending != state)
 	{
 		int from = state;
 		int to = pending;
-	
-		if ( from!=-1 )
+
+		if (from != -1)
 		{
 			_cpu_handle& handle = states[from];
-			if ( handle.exit )
+			if (handle.exit)
 				handle.exit(handle.self, *pReceiver, to);
 		}
 
 		state = to;
-	
-		if ( to!=-1 )
- 		{
+
+		if (to != -1)
+		{
 			totalTime = 0.0f;
 			_cpu_handle& handle = states[to];
-			if ( handle.enter )
+			if (handle.enter)
 				handle.enter(handle.self, *pReceiver, from);
 		}
 	}
-	
-	if ( state!=-1 )
+
+	if (state != -1)
 	{
 		_cpu_handle& handle = states[state];
-		if ( handle.execute )
+		if (handle.execute)
 			handle.execute(handle.self, *pReceiver);
 	}
-	
-	if ( globalState.execute )
+
+	if (globalState.execute)
 		globalState.execute(globalState.self, *pReceiver);
 }

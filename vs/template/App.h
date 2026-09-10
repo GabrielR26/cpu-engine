@@ -35,8 +35,6 @@ private:
 	int m_life;
 	float m_time;
 
-	GameState m_gameState;
-	float m_stateTimer;
 	float m_startTime;
 	float m_startOffset;
 	float m_overTime;
@@ -51,23 +49,53 @@ private:
 	float m_dropTimer;
 	float m_dropTime;
 
+	cpu_fsm<App>* m_FSM;
+
+	std::string m_strGameOver;
+	std::string m_strLife;
+	std::string m_strScore;
+	std::string m_strTime;
+	std::string m_strStart;
+	std::string m_strCommandLeft;
+	std::string m_strCommandRight;
+	std::string m_strCommandSpace;
+	std::string m_strCommandEchap;
+
 public:
 	App();
 	virtual ~App();
 
 	static App& GetInstance() { return *s_pApp; }
+
+	cpu_particle_emitter* GetEmitterDropSpawn() { return m_emitterDropSpawn; }
+	cpu_particle_emitter* GetEmitterDropExplosion() { return m_emitterDropExplosion; }
+	cpu_particle_emitter* GetEmitterDropCatch() { return m_emitterDropCatch; }
+	Catcher* GetCatcher() { return m_catcher; }
+	int GetScore() { return m_score; }
+	int GetLife() { return m_life; }
+	float GetTime() { return m_time; }
+	float GetStartTime() { return m_startTime; }
+	float GetStartOffset() { return m_startOffset; }
+	float GetOverTime() { return m_overTime; }
+	Decor* GetCircle1() { return m_circle1; }
+	Decor* GetCircle2() { return m_circle2; }
+	Decor* GetRail() { return m_rail; }
+	float GetRailRadius() { return m_railRadius; }
 	DropManager* GetDropManager() { return m_dropManager; }
+	DropFactory* GetDropFactory() { return m_dropFactory; }
+	float GetDropTimer() { return m_dropTimer; }
+	float GetDropTime() { return m_dropTime; }
+	cpu_fsm<App>* GetFSM() { return m_FSM; }
+
+	void SetDropTime(const float& _time) { m_dropTime = _time; }
+	void SetDropTimer(const float& _time) { m_dropTimer = _time; }
+	void SetStrStart(const std::string& _str) { m_strStart = _str; }
 
 	void OnStart();
 	void OnUpdate();
 	void OnExit();
 	void OnRender(int pass);
 
-	void StartUpdate();
-	void EngageUpdate();
-	void GameUpdate();
-	void OverUpdate();
-	void ToState(GameState _state);
 	void UpdateCameraPosition();
 	void DropExplosion(const XMFLOAT3& _pos, const bool _isCatch);
 
@@ -77,5 +105,34 @@ public:
 	static void MyPixelShader(cpu_ps_io& io);
 };
 
-// Add State : launch, engage
+struct StateGameGlobal
+{
+	void OnEnter(App& cur, int from);
+	void OnExecute(App& cur);
+	void OnExit(App& cur, int to);
+};
 
+struct StateGameStart
+{
+	void OnEnter(App& cur, int from);
+	void OnExecute(App& cur);
+	void OnExit(App& cur, int to);
+};
+
+struct StateGamePlay
+{
+	void OnEnter(App& cur, int from);
+	void OnExecute(App& cur);
+	void OnExit(App& cur, int to);
+};
+
+struct StateGameOver
+{
+protected:
+	float m_camAngle;
+
+public:
+	void OnEnter(App& cur, int from);
+	void OnExecute(App& cur);
+	void OnExit(App& cur, int to);
+};

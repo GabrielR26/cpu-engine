@@ -20,6 +20,10 @@ Catcher::Catcher(const float& _railRadius) :
 
 	m_entity->transform.pos.y = m_height;
 	m_railRadius = _railRadius;
+
+	m_ghost = cpuEngine.CreateEntity();
+	m_meshGhost.CreateCylinder(m_height, m_radius * 0.25f, 12, true, true, CPU_GRAY);
+	m_ghost->pMesh = &m_meshGhost;
 }
 
 void Catcher::Init()
@@ -48,6 +52,7 @@ void Catcher::UpdatePosition()
 {
 	XMFLOAT2 _trigoPos = cpuApp.GetPositionFromTrigo(m_angle, m_railRadius);
 	m_entity->transform.SetPosition(_trigoPos.x, m_height, _trigoPos.y);
+	m_ghost->transform.pos = cpu::Mul3(XMFLOAT3(_trigoPos.x, -m_height, _trigoPos.y), -1.f);
 }
 
 void Catcher::Update(const float& _dt)
@@ -63,6 +68,12 @@ void Catcher::Update(const float& _dt)
 		UpdateRailPose(_dt, -1.f);
 		cpuApp.UpdateCameraPosition();
 		return;
+	}
+	if (cpuInput.IsSpacePressed())
+	{
+		m_angle += m_angle > 0 ? -XM_PI : XM_PI;
+		UpdatePosition();
+		m_lagTimerStop = m_lagTimeStop;
 	}
 
 	// Catcher stoped

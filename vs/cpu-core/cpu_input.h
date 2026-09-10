@@ -33,6 +33,9 @@ public:
 
 	bool IsBackPressed();
 
+	bool IsSpace();
+	bool IsSpacePressed();
+	bool IsSpaceReleased();
 	bool IsLeft();
 	bool IsLeftPressed();
 	bool IsLeftReleased();

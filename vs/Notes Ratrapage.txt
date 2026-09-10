@@ -1,0 +1,26 @@
+Update (CPU) :
+- Time (DeltaTime, fixedTime, TotalTime, ...)
+- Input (matériels !)
+- Engine, Physics, Gameplay (event), ...
+- Purge (Destroy)
+
+Render (GPU) :
+- Update Buffer
+- Draw
+
+Vertex = position (+ color + uv + normal ...)
+		|-> space : local, world, view (inverse camera), screen, ...
+			    = matrice
+Mesh = pls triangles = 3 vertices
+
+Shader = language HLSL, World * View * Projection matrix
+Vertex Shader = par vertex du mesh, input (CPU) -> output (struct pixel shader)
+Pixel Shader = par pixel vertex, input (struct + inrterpolation) -> output (color RGBA)
+
+Transform = scale, pos, orientation (forward, right, up, rot) -> matrice (scale * orient * pos)
+
+Quaternion = solution gimbal lock (+ definie) != vector4
+
+vector = tab continue, réaloué si plus place (x2), copîe si erase
+list = liste chainé non continue, parcour lent
+map = clé/valeur, clé trié

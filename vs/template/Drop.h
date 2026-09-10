@@ -21,6 +21,7 @@ public:
 	virtual ~Drop() = default;
 
 	float Init(const float& _lastDropRad);
+	XMFLOAT3 Normalize(DirectX::XMFLOAT3& _axe);
 	void Destroy();
 
 	// Hérité via Actor

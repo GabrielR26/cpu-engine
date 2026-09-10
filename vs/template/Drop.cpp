@@ -21,6 +21,15 @@ float Drop::Init(const float& _lastDropRad)
 	XMFLOAT4 _res = RandDropPosition(_lastDropRad);
 	m_angle = _res.w;
 	GetTransform()->pos = XMFLOAT3(_res.x, _res.y, _res.z);
+	XMFLOAT3 _center(0.f, m_height, 0.f);
+	XMFLOAT3 _dir = cpu::Sub3(_center, GetTransform()->pos);
+	GetTransform()->dir = Normalize(_dir);
+	XMFLOAT3 _right = cpu::Cross3(_dir, CPU_VEC3_UP);
+	GetTransform()->right = Normalize(_right);
+	GetTransform()->SetRotationFromAxes();
+
+	m_entity->transform;
+	//GetTransform()->AddYPR(0.f, 0.f, -1.f);
 
 	m_emitterTail = cpuEngine.CreateParticleEmitter();
 	m_emitterTail->pos = cpu::Add3(GetTransform()->pos, XMFLOAT3(0.f, m_radius, 0.f));
@@ -33,16 +42,30 @@ float Drop::Init(const float& _lastDropRad)
 	return m_angle;
 }
 
+XMFLOAT3 Drop::Normalize(DirectX::XMFLOAT3& _axe)
+{
+	float _axeLength = sqrt(_axe.x * _axe.x + _axe.y * _axe.y + _axe.z * _axe.z);
+	XMFLOAT3 _norm(_axe.x / _axeLength, _axe.y / _axeLength, _axe.z / _axeLength);
+	return _norm;
+}
+
 void Drop::Update(const float& _dt)
 {
 	m_timer += _dt * 5.f;
+	float _sin = (sin(m_timer) * 0.5f) + 0.5f;
 
-	// "Gravity"
-	GetTransform()->pos.y -= m_speed * _dt;
-	XMFLOAT3 _tailPos = cpu::Add3(GetTransform()->pos, cpu::Mul3(GetTransform()->up, m_radius));
+	// "Gravity" + Straf
+	float _radLerp = cpu::Lerp(m_angle - 0.05f, m_angle + 0.05f, _sin);
+	XMFLOAT2 _trigo = cpuApp.GetPositionFromTrigo(m_angle, m_railRadius);
+	float _y = GetTransform()->pos.y;
+	GetTransform()->SetPosition(_trigo.x, _y - (m_speed * _dt), _trigo.y);
+	// Tail
+	XMFLOAT3 _tailPos = cpu::Add3(GetTransform()->pos, cpu::Mul3(GetTransform()->dir, m_radius));
 	m_emitterTail->pos = _tailPos;
+	m_emitterTail->dir = GetTransform()->up;
 	// Rotation
-	//GetTransform()->SetYPR(0.f, 0.f, cpu::Lerp(-0.5f, 0.5f, sin(m_dropTimer)));
+	//GetTransform()->AddYPR(0.f, 0.f, sin(m_timer) * 0.1f);
+	//GetTransform()->rot;
 	// Touch ground
 	if (GetTransform()->pos.y - m_radius <= 0)
 	{
@@ -67,14 +90,12 @@ void Drop::Update(const float& _dt)
 
 XMFLOAT4 Drop::RandDropPosition(const float& _lastDropRad)
 {
-	int _randDeg = rand() % (135 - 30);
+	int _randDeg = rand() % (180 - 45);
 	int _randSign = rand() % 2 == 0 ? -1 : 1;
 	float _rad = _lastDropRad + XMConvertToRadians(((_randDeg + 45) * _randSign));
-	XMFLOAT3 _dropPosition(XMScalarSin(_rad) * m_railRadius, m_height, XMScalarCos(_rad) * m_railRadius);
-	return XMFLOAT4(_dropPosition.x, _dropPosition.y, _dropPosition.z, _rad);
+	XMFLOAT2 _trigo = cpuApp.GetPositionFromTrigo(_rad, m_railRadius);
+	return XMFLOAT4(_trigo.x, m_height, _trigo.y, _rad);
 }
-
-
 
 void Drop::Destroy()
 {

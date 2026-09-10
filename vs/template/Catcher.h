@@ -21,6 +21,9 @@ protected:
 	float m_lagTimeMove;
 	float m_signMemory;
 
+	cpu_entity* m_ghost;
+	cpu_mesh m_meshGhost;
+
 public:
 	Catcher(const float& _railRadius);
 	virtual ~Catcher() = default;
@@ -33,11 +36,9 @@ public:
 	const float GetAngleLag() { return m_angleLag; }
 
 	void UpdateRailPose(const float& _dt, const float& _sign);
+	void UpdatePosition();
 
 	// Hérité via Actor
 	void Update(const float& _dt) override;
-
-protected:
-	void UpdatePosition();
 };
 
