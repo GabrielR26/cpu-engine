@@ -21,15 +21,15 @@ float Drop::Init(const float& _lastDropRad)
 	XMFLOAT4 _res = RandDropPosition(_lastDropRad);
 	m_angle = _res.w;
 	GetTransform()->pos = XMFLOAT3(_res.x, _res.y, _res.z);
+	// LookAt
 	XMFLOAT3 _center(0.f, m_height, 0.f);
 	XMFLOAT3 _dir = cpu::Sub3(_center, GetTransform()->pos);
 	GetTransform()->dir = Normalize(_dir);
 	XMFLOAT3 _right = cpu::Cross3(_dir, CPU_VEC3_UP);
 	GetTransform()->right = Normalize(_right);
 	GetTransform()->SetRotationFromAxes();
-
-	m_entity->transform;
-	//GetTransform()->AddYPR(0.f, 0.f, -1.f);
+	XMFLOAT4X4 _matRot = m_entity->transform.rot;
+	m_yaw = atan2f(_matRot._31, _matRot._33);
 
 	m_emitterTail = cpuEngine.CreateParticleEmitter();
 	m_emitterTail->pos = cpu::Add3(GetTransform()->pos, XMFLOAT3(0.f, m_radius, 0.f));
@@ -42,55 +42,64 @@ float Drop::Init(const float& _lastDropRad)
 	return m_angle;
 }
 
-XMFLOAT3 Drop::Normalize(DirectX::XMFLOAT3& _axe)
+XMFLOAT3 Drop::Normalize(DirectX::XMFLOAT3& _vector)
 {
-	float _axeLength = sqrt(_axe.x * _axe.x + _axe.y * _axe.y + _axe.z * _axe.z);
-	XMFLOAT3 _norm(_axe.x / _axeLength, _axe.y / _axeLength, _axe.z / _axeLength);
+	float _vectorLength = Length(_vector);
+	XMFLOAT3 _norm(_vector.x / _vectorLength, _vector.y / _vectorLength, _vector.z / _vectorLength);
 	return _norm;
+}
+
+float Drop::Length(XMFLOAT3& _vector)
+{
+	return sqrt(_vector.x * _vector.x + _vector.y * _vector.y + _vector.z * _vector.z);
 }
 
 void Drop::Update(const float& _dt)
 {
 	m_timer += _dt * 5.f;
 	float _sin = (sin(m_timer) * 0.5f) + 0.5f;
+	XMFLOAT3 _dropPos = GetTransform()->pos;
 
 	// "Gravity" + Straf
 	float _radLerp = cpu::Lerp(m_angle - 0.05f, m_angle + 0.05f, _sin);
-	XMFLOAT2 _trigo = cpuApp.GetPositionFromTrigo(m_angle, m_railRadius);
-	float _y = GetTransform()->pos.y;
-	GetTransform()->SetPosition(_trigo.x, _y - (m_speed * _dt), _trigo.y);
+	XMFLOAT2 _trigo = cpuApp.GetPositionFromTrigo(_radLerp, m_railRadius);
+	GetTransform()->SetPosition(_trigo.x, _dropPos.y - (m_speed * _dt), _trigo.y);
+	_dropPos = GetTransform()->pos;
 	// Tail
-	XMFLOAT3 _tailPos = cpu::Add3(GetTransform()->pos, cpu::Mul3(GetTransform()->dir, m_radius));
+	XMFLOAT3 _tailPos = cpu::Add3(_dropPos, cpu::Mul3(GetTransform()->up, m_radius));
 	m_emitterTail->pos = _tailPos;
 	m_emitterTail->dir = GetTransform()->up;
 	// Rotation
-	//GetTransform()->AddYPR(0.f, 0.f, sin(m_timer) * 0.1f);
-	//GetTransform()->rot;
+	GetTransform()->SetYPR(m_yaw, 0.f, sin(m_timer) * 0.75f);
+	_dropPos = GetTransform()->pos;
 	// Touch ground
-	if (GetTransform()->pos.y - m_radius <= 0)
+	if (_dropPos.y - m_radius <= 0)
 	{
-		cpuApp.DropExplosion(GetTransform()->pos, false);
+		cpuApp.DropExplosion(_dropPos, false);
 		Destroy();
 		return;
 	}
 	// Touch Catcher
-	float _diffX = GetTransform()->pos.x - m_catcher->GetTransform()->pos.x;
-	float _diffY = GetTransform()->pos.y - m_catcher->GetTransform()->pos.y;
-	float _diffZ = GetTransform()->pos.z - m_catcher->GetTransform()->pos.z;
-	float _dist = sqrt(_diffX * _diffX + _diffY * _diffY + _diffZ * _diffZ);
+	XMFLOAT3 _vect = cpu::Sub3(m_catcher->GetTransform()->pos, _dropPos);
+	float _dist = Length(_vect);
 	if (_dist <= m_radius + m_catcher->GetRadius())
 	{
-		if (GetTransform()->pos.y - m_radius < m_catcher->GetTransform()->pos.y + (m_catcher->GetHeight() * 0.5))
-			cpuApp.DropExplosion(GetTransform()->pos, false);
+		// Hit border
+		if (_dropPos.y - m_radius < (m_catcher->GetTransform()->pos.y + (m_catcher->GetHeight() * 0.5f)))
+			cpuApp.DropExplosion(_dropPos, false);
+		// Catch
 		else
-			cpuApp.DropExplosion(cpu::Add3(GetTransform()->pos, XMFLOAT3(0.f, -m_radius, 0.f)), true);
+		{
+			XMFLOAT3 _catchPos = cpu::Add3(_dropPos, XMFLOAT3(0.f, -m_radius, 0.f));
+			cpuApp.DropExplosion(_catchPos, true);
+		}
 		Destroy();
 	}
 }
 
 XMFLOAT4 Drop::RandDropPosition(const float& _lastDropRad)
 {
-	int _randDeg = rand() % (180 - 45);
+	int _randDeg = rand() % (150 - 45);
 	int _randSign = rand() % 2 == 0 ? -1 : 1;
 	float _rad = _lastDropRad + XMConvertToRadians(((_randDeg + 45) * _randSign));
 	XMFLOAT2 _trigo = cpuApp.GetPositionFromTrigo(_rad, m_railRadius);

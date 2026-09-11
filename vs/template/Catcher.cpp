@@ -5,12 +5,12 @@ Catcher::Catcher(const float& _railRadius) :
 	Actor()
 {
 	m_height = 0.5f;
-	m_radius = 0.5f;
+	m_radius = 0.75f;
 	m_springArm = 3.0f;
 	m_angle = 0.0f;
 	m_angleLag = 0.0f;
 	m_maxLag = 0.15f;
-	m_speed = 2.0f;
+	m_speed = 1.75f;
 
 	m_lagTimeStop = 0.5f;
 	m_lagTimeMove = 1.f;

@@ -6,7 +6,7 @@
 
 DropFactory::DropFactory(Catcher* _catcher, const float& _railRadius)
 {
-    m_dropHeight = 4.0f;
+    m_dropHeight = 4.25f;
     m_dropRadius = 0.25f;
     m_dropSpeed = 1.5f;
     m_lastDropRad = 0.f;

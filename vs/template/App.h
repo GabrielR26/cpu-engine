@@ -48,6 +48,7 @@ private:
 	DropFactory* m_dropFactory;
 	float m_dropTimer;
 	float m_dropTime;
+	float m_dropTimeMin;
 
 	cpu_fsm<App>* m_FSM;
 
@@ -67,25 +68,26 @@ public:
 
 	static App& GetInstance() { return *s_pApp; }
 
-	cpu_particle_emitter* GetEmitterDropSpawn() { return m_emitterDropSpawn; }
-	cpu_particle_emitter* GetEmitterDropExplosion() { return m_emitterDropExplosion; }
-	cpu_particle_emitter* GetEmitterDropCatch() { return m_emitterDropCatch; }
-	Catcher* GetCatcher() { return m_catcher; }
-	int GetScore() { return m_score; }
-	int GetLife() { return m_life; }
-	float GetTime() { return m_time; }
-	float GetStartTime() { return m_startTime; }
-	float GetStartOffset() { return m_startOffset; }
-	float GetOverTime() { return m_overTime; }
-	Decor* GetCircle1() { return m_circle1; }
-	Decor* GetCircle2() { return m_circle2; }
-	Decor* GetRail() { return m_rail; }
-	float GetRailRadius() { return m_railRadius; }
-	DropManager* GetDropManager() { return m_dropManager; }
-	DropFactory* GetDropFactory() { return m_dropFactory; }
-	float GetDropTimer() { return m_dropTimer; }
-	float GetDropTime() { return m_dropTime; }
-	cpu_fsm<App>* GetFSM() { return m_FSM; }
+	inline cpu_particle_emitter* GetEmitterDropSpawn() { return m_emitterDropSpawn; }
+	inline cpu_particle_emitter* GetEmitterDropExplosion() { return m_emitterDropExplosion; }
+	inline cpu_particle_emitter* GetEmitterDropCatch() { return m_emitterDropCatch; }
+	inline Catcher* GetCatcher() { return m_catcher; }
+	inline int GetScore() { return m_score; }
+	inline int GetLife() { return m_life; }
+	inline float GetTime() { return m_time; }
+	inline float GetStartTime() { return m_startTime; }
+	inline float GetStartOffset() { return m_startOffset; }
+	inline float GetOverTime() { return m_overTime; }
+	inline Decor* GetCircle1() { return m_circle1; }
+	inline Decor* GetCircle2() { return m_circle2; }
+	inline Decor* GetRail() { return m_rail; }
+	inline float GetRailRadius() { return m_railRadius; }
+	inline DropManager* GetDropManager() { return m_dropManager; }
+	inline DropFactory* GetDropFactory() { return m_dropFactory; }
+	inline float GetDropTimer() { return m_dropTimer; }
+	inline float GetDropTime() { return m_dropTime; }
+	inline float GetDropTimeMin() { return m_dropTimeMin; }
+	inline cpu_fsm<App>* GetFSM() { return m_FSM; }
 
 	void SetDropTime(const float& _time) { m_dropTime = _time; }
 	void SetDropTimer(const float& _time) { m_dropTimer = _time; }

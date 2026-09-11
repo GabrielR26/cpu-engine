@@ -13,11 +13,13 @@ App::App()
 	CPU_CALLBACK_EXIT(OnExit);
 	CPU_CALLBACK_RENDER(OnRender);
 
-	// Init var
-	m_life = 100;
-	m_startTime = 0.5f;
-	m_dropTime = 1.5f;
+	// Init GameVar
+	m_life = 10;
+	m_startTime = 2.5f;
+	m_dropTime = 1.75f;
+	m_dropTimeMin = 0.75f;
 
+	// Init global var
 	m_score = 0;
 	m_time = 0.f;
 	m_startOffset = 20.f;
@@ -25,6 +27,7 @@ App::App()
 	m_dropTimer = 0.f;
 	m_overTime = 0.f;
 
+	// Init ptr
 	m_emitterDropSpawn = nullptr;
 	m_emitterDropExplosion = nullptr;
 	m_emitterDropCatch = nullptr;
@@ -35,6 +38,7 @@ App::App()
 	m_dropManager = nullptr;
 	m_dropFactory = nullptr;
 
+	// Init UI
 	m_strGameOver = "Game Over";
 	m_strLife = "Life: ";
 	m_strScore = "Score: ";
@@ -45,6 +49,7 @@ App::App()
 	m_strCommandSpace = "Space => jump overside";
 	m_strCommandEchap = "Echap => Quit";
 
+	// Init FSM
 	m_FSM = cpuEngine.CreateFSM(this);
 	m_FSM->SetGlobal<StateGameGlobal>();
 	m_FSM->Add<StateGameStart>();
@@ -58,8 +63,7 @@ App::~App()
 
 void App::OnStart()
 {
-	// YOUR CODE HERE
-
+	// Rand seed
 	srand(timeGetTime());
 
 	// Font
@@ -132,13 +136,15 @@ void App::OnStart()
 	m_emitterDropCatch->colorMin = cpu::ToColor(0, 255, 0);
 	m_emitterDropCatch->colorMax = cpu::ToColor(125, 255, 125);
 
+	// FSM
 	m_FSM->ToState(CPU_ID(StateGameStart));
-	//OutputDebugStringA(std::to_string(m_dropManager->count).c_str());
 }
 
 void App::OnUpdate()
 {
 	// YOUR CODE HERE
+
+	//OutputDebugStringA(std::to_string(m_dropManager->count).c_str());
 }
 
 void App::OnExit()
@@ -165,15 +171,14 @@ void App::OnExit()
 
 void App::OnRender(int pass)
 {
-	// YOUR CODE HERE
-
-	// UI
+	// UI Color
 	XMFLOAT3 _tintWhite = { 1.0f, 1.0f, 1.0f };
 	XMFLOAT3 _tintBlack = { 0.f, 0.f, 0.f };
 	XMFLOAT3 _tintRed = { 1.0f, 0.1f, 0.1f };
 	XMFLOAT3 _tintGreen = { 0.1f, 1.0f, 0.1f };
 	XMFLOAT3 _tintBlue = { 0.1f, 0.1f, 1.0f };
 
+	// UI
 	if (m_FSM->state == CPU_ID(StateGameStart))
 	{
 		cpuDevice.DrawText(&m_titlefont, m_strStart.c_str(), (int)(cpuDevice.GetWidth() * 0.5f), (int)(cpuDevice.GetHeight() * 0.2f), CPU_TEXT_CENTER, &_tintWhite);
@@ -187,10 +192,10 @@ void App::OnRender(int pass)
 		cpuDevice.DrawText(&m_font, _strLife.c_str(), (int)(cpuDevice.GetWidth() * 0.1f), 10, CPU_TEXT_CENTER, &_tintGreen);
 		cpuDevice.DrawText(&m_font, _strScore.c_str(), (int)(cpuDevice.GetWidth() * 0.5f), 10, CPU_TEXT_CENTER, &_tintBlue);
 		cpuDevice.DrawText(&m_font, _strTime.c_str(), (int)(cpuDevice.GetWidth() * 0.9f), 10, CPU_TEXT_CENTER, &_tintRed);
-		cpuDevice.DrawText(&m_font, m_strCommandLeft.c_str(), (int)(cpuDevice.GetWidth() * 0.05f), (int)(cpuDevice.GetHeight() * 0.75f), CPU_TEXT_LEFT, &_tintBlack);
-		cpuDevice.DrawText(&m_font, m_strCommandRight.c_str(), (int)(cpuDevice.GetWidth() * 0.05f), (int)(cpuDevice.GetHeight() * 0.80f), CPU_TEXT_LEFT, &_tintBlack);
-		cpuDevice.DrawText(&m_font, m_strCommandSpace.c_str(), (int)(cpuDevice.GetWidth() * 0.05f), (int)(cpuDevice.GetHeight() * 0.85f), CPU_TEXT_LEFT, &_tintBlack);
-		cpuDevice.DrawText(&m_font, m_strCommandEchap.c_str(), (int)(cpuDevice.GetWidth() * 0.05f), (int)(cpuDevice.GetHeight() * 0.90f), CPU_TEXT_LEFT, &_tintBlack);
+		cpuDevice.DrawText(&m_font, m_strCommandEchap.c_str(), (int)(cpuDevice.GetWidth() * 0.05f), (int)(cpuDevice.GetHeight() * 0.75f), CPU_TEXT_LEFT, &_tintBlack);
+		cpuDevice.DrawText(&m_font, m_strCommandLeft.c_str(), (int)(cpuDevice.GetWidth() * 0.05f), (int)(cpuDevice.GetHeight() * 0.80f), CPU_TEXT_LEFT, &_tintBlack);
+		cpuDevice.DrawText(&m_font, m_strCommandRight.c_str(), (int)(cpuDevice.GetWidth() * 0.05f), (int)(cpuDevice.GetHeight() * 0.85f), CPU_TEXT_LEFT, &_tintBlack);
+		cpuDevice.DrawText(&m_font, m_strCommandSpace.c_str(), (int)(cpuDevice.GetWidth() * 0.05f), (int)(cpuDevice.GetHeight() * 0.90f), CPU_TEXT_LEFT, &_tintBlack);
 	}
 	else if (m_FSM->state == CPU_ID(StateGameOver))
 	{
@@ -301,14 +306,15 @@ void StateGameStart::OnExecute(App& cur)
 	cpuEngine.GetCamera()->transform.pos = _camRot3;
 	cpuEngine.GetCamera()->transform.LookAt(0, 0, 0);
 
+	// Rand Explosion
 	if (cur.GetFSM()->totalTime < cur.GetStartTime())
 	{
-		/// Emitter
 		cur.GetEmitterDropExplosion()->pos = cur.RandXYPos(10);
 		cur.GetEmitterDropCatch()->pos = cur.RandXYPos(10);
 		cur.GetEmitterDropSpawn()->pos = cur.RandXYPos(10);
 	}
 
+	// Change UI
 	if (cur.GetFSM()->totalTime >= cur.GetStartTime())
 	{
 		cur.SetStrStart("Go !!");
@@ -341,7 +347,7 @@ void StateGamePlay::OnExecute(App& cur)
 {
 	float _dt = cpuTime.delta;
 	float _dropTime = cur.GetDropTime();
-	cur.SetDropTime(cpu::Clamp(_dropTime -= _dt * _dt, 1.f, cur.GetDropTime()));
+	cur.SetDropTime(cpu::Clamp(_dropTime -= _dt * _dt, cur.GetDropTimeMin(), cur.GetDropTime()));
 
 	// Disable rate for small explosion
 	if (cur.GetEmitterDropExplosion()->rate > 0)
@@ -351,6 +357,7 @@ void StateGamePlay::OnExecute(App& cur)
 	if (cur.GetEmitterDropSpawn()->rate > 0)
 		cur.GetEmitterDropSpawn()->rate = 0.0f;
 
+	// Droping
 	if (cur.GetDropTimer() >= cur.GetDropTime())
 	{
 		Drop* _newDrop = cur.GetDropFactory()->SpawnDrop();
@@ -365,7 +372,7 @@ void StateGamePlay::OnExecute(App& cur)
 	// Catcher
 	cur.GetCatcher()->Update(_dt);
 
-	//// Drops
+	//// Drops update
 	for (size_t i = 0; i < cur.GetDropManager()->count; i++)
 		cur.GetDropManager()->list[i]->Update(_dt);
 	cur.GetDropManager()->Purge();
